@@ -1,7 +1,7 @@
-name: "Lab4_7170"
+name: Lab4_7170
 output_dir: ../docs
 navbar:
-  title: "Lab4_7170"
+  title: Lab4_7170
   left:
   - text: Home
     href: index.html
@@ -11,6 +11,10 @@ navbar:
     href: license.html
   - text: Lab3
     href: GeneticCorrelationAndGxE.html
+  right:
+  - icon: fa-github
+    text: Source code
+    href: https://github.com/jeanlucj/Lab4_7170
 output:
   workflowr::wflow_html:
     toc: yes
