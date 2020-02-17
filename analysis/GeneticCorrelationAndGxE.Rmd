@@ -1,0 +1,217 @@
+---
+title: "Genetic Correlation and GxE"
+author: 
+  name: "Jean-Luc Jannink"
+  affiliation: "USDA-ARS / Cornell"
+date: "February 16, 2020"
+output:
+  html_document:
+    fig_caption: yes
+    fig_height: 6
+    fig_width: 12
+    highlight: haddock
+    theme: cosmo
+    toc: yes
+    toc_float:
+      collapsed: no
+      toc_depth: 2
+editor_options: 
+  chunk_output_type: console
+---
+  
+<style>
+pre {
+  overflow-x: auto;
+}
+pre code {
+  word-wrap: normal;
+  white-space: pre;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE)
+knitr::opts_chunk$set(message=FALSE)
+knitr::opts_chunk$set(cache=FALSE)
+knitr::opts_chunk$set(tidy=TRUE)
+knitr::opts_chunk$set(results="hold")
+knitr::opts_chunk$set(collapse=TRUE)
+knitr::opts_chunk$set(fig.show="hold")
+knitr::opts_chunk$set(tidy.opts = list(wrap=FALSE))
+```
+
+## Objectives
+Learn how `AlphaSimR` simulates correlated traits and traits that are affected by genotype by environment interaction. Analyze traits using an "additive main effects and multiplicative interaction" (AMMI) model.
+
+## Reproducibility
+Here is the [README file](./README.md) for this report  
+
+### Script setup
+Install packages, start the README.md, set the random seed  
+```{r Script setup, echo=FALSE}
+ip <- installed.packages()
+packages_used <- c("AlphaSimR", "tidyverse", "devtools")
+
+for (package in packages_used){
+  isInstalled <- package %in% rownames(ip)
+  if (!isInstalled){
+    stop(paste("ERROR: you need to install the", package, "package"))
+  } else{
+    library(package, character.only=T)
+  }
+}#END packages_used
+
+source("./code/addToREADME.R")
+addToREADME(paste0("## ", rmarkdown::metadata$title), append=F)
+addToREADME(date())
+
+packages_used <- as_tibble(ip[packages_used, c("Package", "Version", "Built")])
+# Clunky way to add the packages at the end
+readme_file <- ".addToReadMe.txt"
+write_tsv(packages_used, readme_file)
+
+random_seed <- 45678
+set.seed(random_seed)
+addToREADME(paste("The random seed is", random_seed))
+
+addToREADME(c("The packages used in this script are:", readLines(readme_file)))
+```
+
+## Coalescent simulator to create founder haplotypes
+
+### Species and population parameters
+Number of chromosomes, effective population size, number of segregating sites and QTL
+```{r Species and population parameters, echo=FALSE}
+historicalNe <- 100
+nFounders <- historicalNe
+nChr <- 7
+segSites <- 1400
+nQTL <- 50
+addToREADME(c("Chunk Population History",
+  paste("Historical effective population size ", historicalNe), 
+  paste("Number of founders ", nFounders), 
+  paste("Number of chromosomes ", nChr), 
+  paste("Number of segregating sites per chromosome", segSites),
+  paste("Number of QTL per chromosome", nQTL)
+))
+```
+Historical effective population size `historicalNe` = `r historicalNe`  
+Number of founders `nFounders` = `r nFounders`  
+Number of chromosomes `nChr` = `r nChr`  
+Each chromosome has `segSites` = `r segSites` segregating sites  
+Each chromosome has `nQTL` = `r nQTL` QTL
+
+### Initiate simulation
+Specify Trait means and variances
+```{r Initiate simulation}
+founderHaps <- runMacs2(nInd=nFounders, nChr=nChr, segSites=segSites, Ne=historicalNe, histNe=NULL, histGen=NULL)
+SP <- SimParam$new(founderHaps)
+
+traitMeans <- c(DM=31, FYLD=16)
+# Specify the additive variance and correlation: 1 on the diagonal
+addVar <- c(DM=2.5, FYLD=3.7)
+addCor <- matrix(c(1, -0.05, -0.05, 1), nrow=2)
+# Specify the error correlation and calculate error covariance
+errVar <- c(DM=4.3, FYLD=7.0)
+errCor <- 0.3; errCov <- errCor*prod(sqrt(errVar))
+errCov <- matrix(c(errVar[1], errCov, errCov, errVar[2]), nrow=2)
+addToREADME(c("Chunk Initiate simulation",
+  paste("Trait means", paste(traitMeans, collapse=" ")),
+  paste("Additive variance", paste(addVar, collapse=" ")),
+  paste("Additive correlation", addCor[1, 2]),
+  paste("Error variance", paste(errVar, collapse=" ")),
+  paste("Error correlation", errCor)
+))
+SP$addTraitA(nQtlPerChr=nQTL, mean=traitMeans, var=addVar, corA=addCor)
+
+# Create a new population of founders
+founders <- newPop(founderHaps, simParam=SP)
+```
+
+### Perform selection on a trait index
+Contrast the genetic relationship between traits in the unselected and selected populations
+```{r Select on trait}
+# Importance of each trait in selection
+selIdxCoef <- c(DM=1, FYLD=1)
+# Number of progeny to select on
+nProgeny <- nFounders*4
+# Number to select
+nToSelect <- nFounders
+progeny <- randCross(founders, nCrosses=nProgeny, nProgeny=1)
+# Specify the error variance when you set the phenotype. 
+# To specify non-zero error correlation, provide a matrix as the error variance
+progeny <- setPheno(progeny, varE=errCov)
+progPhen <- pheno(progeny)
+index <- progPhen %*% selIdxCoef
+whichToSelect <- order(index, decreasing=T)[1:nToSelect]
+
+# Plot the selected and not selected individuals
+xlim=range(progPhen[,1])
+ylim=range(progPhen[,2])
+plot(progPhen[-whichToSelect,], pch=16, xlab="Dry Matter Content [%]", ylab="Fresh Root Yield [t/ha]", xlim=xlim, ylim=ylim)
+points(progPhen[whichToSelect,], pch=16, col=2)
+
+# Plot the genetic values side by side
+op <- par(mfrow=c(1,2))
+progGenV <- gv(progeny)
+xlim=range(progGenV[,1])
+ylim=range(progGenV[,2])
+par(mar=c(5, 4, 4, 0.5))
+plot(progGenV, pch=16, xlab="Genetic Value DM [%]", ylab="Genetic Value FYLD [t/ha]", xlim=xlim, ylim=ylim, main=paste("GenCorr =", round(cor(progGenV)[1,2], 2)))
+par(mar=c(5, 2.5, 4, 2))
+plot(progGenV[whichToSelect,], pch=16, xlab="Genetic Value DM [%]", xlim=xlim, ylim=ylim, main=paste("GenCorr =", round(cor(progGenV[whichToSelect,])[1,2], 2)))
+par(op)
+```
+
+> Say the economic value of a clone is gv(DM) + gv(FYLD). In this simulation we had an error correlation of `r errCor` between those traits. Would we be more or less successful in selecting for high economic value if the error correlation was `r -errCor`? Make a prediction then test your prediction with a simulation.  
+
+> Observe the difference in the genetic correlation between traits in the selected versus the unselected populations. Explain that difference. Is having high or low heritability likely to affect the difference? If so, how?
+
+### Run AMMI using a package by our very own Nick Santantonio
+Note: I forked Nick's package and modified the plotting feature to better illustrate what I am interested in.  The [original package is at](https://github.com/nsantantonio/Bilinear).  
+In brief how AMMI works.  
+1. Start with a matrix of performance of individuals (rows) in environments (columns)  
+2. Remove main effects of individuals and environments from the matrix. You ar left with deviations due to individuals responding differentially to environments: GxE  
+3. Imagine now that you can characterize each environment with a single parameter called a score, $$\delta_e$$ You can't observe this score but it will be estimated by the AMMI statistics. There is also an individual-specific sensitivity to the score $$\gamma_g$$ Think of that sensitivity as a trait of the individual  
+4. Each cell of the matrix of deviations from 2. is approximated by $$\gamma_g \times \delta_e$$ AMMI finds the values that lead to the best approximation  
+5. Since it is unlikely that an environment can be characterized by a single score, iterate on residuals of the matrix  
+Here is AMMI on a real soybean dataset
+```{r AMMI on soy means}
+devtools::install_github("https://github.com/jeanlucj/Bilinear", quiet=T)
+library(Bilinear)
+data(soy)
+print("Genotype by Environment means to be analyzed")
+print(round(soyMeanMat))
+AMMIfit <- bilinear(x = soyMeanMat, verbose=F)
+AMMIplot(AMMIfit)
+AMMIplot(AMMIfit, PC=2)
+```
+
+### Simulate GxE data in AlphaSimR and run AMMI on that
+The function for an additive trait affected by GxE is `addTraitAG`. The kind of environment and therefore the GxE deviations is set by specifying a value, `p`, from the unit uniform, with the target environment represented by 0.5 and `0 < p` and `1 > p` at opposite ends of a spectrum. Each time you call `setPheno` you have to specify this value for the environment from which you are getting phenotypes.
+```{r AMMI on sim GxE}
+SP <- SimParam$new(founderHaps)
+SP$addTraitAG(nQtlPerChr=nQTL, mean=0, var=1, varGxE=1, varEnv=1)
+
+nEnv <- 10
+# Create a new population of founders
+founders <- newPop(founderHaps, simParam=SP)
+allPheno <- NULL
+
+# Use different values of p for the environment characteristic
+for (envVal in seq(0.05, 0.95, length.out=nEnv)){
+  allPheno <- cbind(allPheno, setPheno(founders, varE=0.25, p=envVal, onlyPheno=T))
+}
+rownames(allPheno) <- paste0("Ind", 1:nFounders)
+colnames(allPheno) <- paste0("Env", 1:nEnv)
+
+AMMIfitSim <- bilinear(x = allPheno, verbose=F)
+AMMIplot(AMMIfitSim)
+
+# Plot the environment scores AlphaSimR uses against what AMMI found
+plot(qnorm(seq(0.05, 0.95, length.out=nEnv)), AMMIfitSim$scores$Escores, pch=16, xlab="AlphaSimR environment scores", ylab="Estimated latent score")
+```
+
+> In preparing to simulate `DM` and `FYLD` traits in the first part of the lab, I fussed a lot about the error correlation. We saw that GxE is the flip-side of trait correlation. But in simulating the GxE dataset, I didn't worry about error correlation: why?  
+
+> Notice that for the simulated data, the PC1 test is highly significant with an MS of about 8.5 while the PC2 test is not, with an MS of about 0.3. This strong divergence contrasts with what we say in the real soybean data. Based on what you know about how `AlphaSimR` generates GxE deviations, why this difference?

@@ -1,5 +1,1 @@
-# Lab4_7170
-
-A [workflowr][] project.
-
-[workflowr]: https://github.com/jdblischak/workflowr
+[See README.md in docs folder](./docs/README.md)  
