@@ -9,7 +9,7 @@ navbar:
     href: about.html
   - text: License
     href: license.html
-  - text: Lab3
+  - text: Lab4
     href: GeneticCorrelationAndGxE.html
   right:
   - icon: fa-github
