@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+<meta name="date" content="2020-02-16" />
+
+<title>Genetic Correlation and GxE</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Lab4_7170</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+<li>
+  <a href="GeneticCorrelationAndGxE.html">Lab3</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Genetic Correlation and GxE</h1>
+<h4 class="author">Jean-Luc Jannink</h4>
+<address class="author_afil">
+USDA-ARS / Cornell<br><h4 class="date">February 16, 2020</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> </a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2020-02-17
+</p>
+<p>
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>Lab4_7170/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
+</p>
+<p>
+This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis was created with <a
+  href="https://github.com/jdblischak/workflowr">workflowr</a> (version 1.6.0). The <em>Checks</em> tab describes the reproducibility checks that were applied when the results were created. The <em>Past versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20200216code"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Seed:</strong> <code>set.seed(20200216)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20200216code" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20200216)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Session information:</strong> recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be confident that you successfully produced the results during this run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrong35b77de"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> 35b77de </a>
+</p>
+</div>
+<div id="strongRepositoryversionstrong35b77de" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    analysis/.Rhistory
+
+Untracked files:
+    Untracked:  .addToReadMe.txt
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the R Markdown and HTML files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view them.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+35b77de
+</td>
+<td>
+jeanlucj
+</td>
+<td>
+2020-02-17
+</td>
+<td>
+First full publish of Lab4
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<style>
+pre {
+  overflow-x: auto;
+}
+pre code {
+  word-wrap: normal;
+  white-space: pre;
+}
+</style>
+<div id="objectives" class="section level2">
+<h2>Objectives</h2>
+<p>Learn how <code>AlphaSimR</code> simulates correlated traits and traits that are affected by genotype by environment interaction. Analyze traits using an “additive main effects and multiplicative interaction” (AMMI) model.</p>
+</div>
+<div id="reproducibility" class="section level2">
+<h2>Reproducibility</h2>
+<p>Here is the <a href="./README.md">README file</a> for this report</p>
+<div id="script-setup" class="section level3">
+<h3>Script setup</h3>
+<p>Install packages, start the README.md, set the random seed</p>
+</div>
+</div>
+<div id="coalescent-simulator-to-create-founder-haplotypes" class="section level2">
+<h2>Coalescent simulator to create founder haplotypes</h2>
+<div id="species-and-population-parameters" class="section level3">
+<h3>Species and population parameters</h3>
+<p>Number of chromosomes, effective population size, number of segregating sites and QTL</p>
+<p>Historical effective population size <code>historicalNe</code> = 100<br />
+Number of founders <code>nFounders</code> = 100<br />
+Number of chromosomes <code>nChr</code> = 7<br />
+Each chromosome has <code>segSites</code> = 1400 segregating sites<br />
+Each chromosome has <code>nQTL</code> = 50 QTL</p>
+</div>
+<div id="initiate-simulation" class="section level3">
+<h3>Initiate simulation</h3>
+<p>Specify Trait means and variances</p>
+<pre class="r"><code>founderHaps &lt;- runMacs2(nInd = nFounders, nChr = nChr, segSites = segSites, Ne = historicalNe, 
+    histNe = NULL, histGen = NULL)
+SP &lt;- SimParam$new(founderHaps)
+
+traitMeans &lt;- c(DM = 31, FYLD = 16)
+# Specify the additive variance and correlation: 1 on the diagonal
+addVar &lt;- c(DM = 2.5, FYLD = 3.7)
+addCor &lt;- matrix(c(1, -0.05, -0.05, 1), nrow = 2)
+# Specify the error correlation and calculate error covariance
+errVar &lt;- c(DM = 4.3, FYLD = 7)
+errCor &lt;- 0.3
+errCov &lt;- errCor * prod(sqrt(errVar))
+errCov &lt;- matrix(c(errVar[1], errCov, errCov, errVar[2]), nrow = 2)
+addToREADME(c(&quot;Chunk Initiate simulation&quot;, paste(&quot;Trait means&quot;, paste(traitMeans, 
+    collapse = &quot; &quot;)), paste(&quot;Additive variance&quot;, paste(addVar, collapse = &quot; &quot;)), 
+    paste(&quot;Additive correlation&quot;, addCor[1, 2]), paste(&quot;Error variance&quot;, paste(errVar, 
+        collapse = &quot; &quot;)), paste(&quot;Error correlation&quot;, errCor)))
+SP$addTraitA(nQtlPerChr = nQTL, mean = traitMeans, var = addVar, corA = addCor)
+
+# Create a new population of founders
+founders &lt;- newPop(founderHaps, simParam = SP)</code></pre>
+</div>
+<div id="perform-selection-on-a-trait-index" class="section level3">
+<h3>Perform selection on a trait index</h3>
+<p>Contrast the genetic relationship between traits in the unselected and selected populations</p>
+<pre class="r"><code># Importance of each trait in selection
+selIdxCoef &lt;- c(DM = 1, FYLD = 1)
+# Number of progeny to select on
+nProgeny &lt;- nFounders * 4
+# Number to select
+nToSelect &lt;- nFounders
+progeny &lt;- randCross(founders, nCrosses = nProgeny, nProgeny = 1)
+# Specify the error variance when you set the phenotype. 
+# To specify non-zero error correlation, provide a matrix as the error variance
+progeny &lt;- setPheno(progeny, varE = errCov)
+progPhen &lt;- pheno(progeny)
+index &lt;- progPhen %*% selIdxCoef
+whichToSelect &lt;- order(index, decreasing = T)[1:nToSelect]
+
+# Plot the selected and not selected individuals
+xlim = range(progPhen[, 1])
+ylim = range(progPhen[, 2])
+plot(progPhen[-whichToSelect, ], pch = 16, xlab = &quot;Dry Matter Content [%]&quot;, ylab = &quot;Fresh Root Yield [t/ha]&quot;, 
+    xlim = xlim, ylim = ylim)
+points(progPhen[whichToSelect, ], pch = 16, col = 2)
+
+# Plot the genetic values side by side
+op &lt;- par(mfrow = c(1, 2))
+progGenV &lt;- gv(progeny)
+xlim = range(progGenV[, 1])
+ylim = range(progGenV[, 2])
+par(mar = c(5, 4, 4, 0.5))
+plot(progGenV, pch = 16, xlab = &quot;Genetic Value DM [%]&quot;, ylab = &quot;Genetic Value FYLD [t/ha]&quot;, 
+    xlim = xlim, ylim = ylim, main = paste(&quot;GenCorr =&quot;, round(cor(progGenV)[1, 2], 
+        2)))
+par(mar = c(5, 2.5, 4, 2))
+plot(progGenV[whichToSelect, ], pch = 16, xlab = &quot;Genetic Value DM [%]&quot;, xlim = xlim, 
+    ylim = ylim, main = paste(&quot;GenCorr =&quot;, round(cor(progGenV[whichToSelect, ])[1, 
+        2], 2)))
+par(op)</code></pre>
+<p><img src="figure/GeneticCorrelationAndGxE.Rmd/Select%20on%20trait-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/GeneticCorrelationAndGxE.Rmd/Select%20on%20trait-2.png" width="672" style="display: block; margin: auto;" /></p>
+<blockquote>
+<p>Say the economic value of a clone is gv(DM) + gv(FYLD). In this simulation we had an error correlation of 0.3 between those traits. Would we be more or less successful in selecting for high economic value if the error correlation was -0.3? Make a prediction then test your prediction with a simulation.</p>
+</blockquote>
+<blockquote>
+<p>Observe the difference in the genetic correlation between traits in the selected versus the unselected populations. Explain that difference. Is having high or low heritability likely to affect the difference? If so, how?</p>
+</blockquote>
+</div>
+<div id="run-ammi-using-a-package-by-our-very-own-nick-santantonio" class="section level3">
+<h3>Run AMMI using a package by our very own Nick Santantonio</h3>
+<p>Note: I forked Nick’s package and modified the plotting feature to better illustrate what I am interested in. The <a href="https://github.com/nsantantonio/Bilinear">original package is at</a>.<br />
+In brief how AMMI works.<br />
+1. Start with a matrix of performance of individuals (rows) in environments (columns)<br />
+2. Remove main effects of individuals and environments from the matrix. You ar left with deviations due to individuals responding differentially to environments: GxE<br />
+3. Imagine now that you can characterize each environment with a single parameter called a score, <span class="math display">\[\delta_e\]</span> You can’t observe this score but it will be estimated by the AMMI statistics. There is also an individual-specific sensitivity to the score <span class="math display">\[\gamma_g\]</span> Think of that sensitivity as a trait of the individual<br />
+4. Each cell of the matrix of deviations from 2. is approximated by <span class="math display">\[\gamma_g \times \delta_e\]</span> AMMI finds the values that lead to the best approximation<br />
+5. Since it is unlikely that an environment can be characterized by a single score, iterate on residuals of the matrix<br />
+Here is AMMI on a real soybean dataset</p>
+<pre class="r"><code>devtools::install_github(&quot;https://github.com/jeanlucj/Bilinear&quot;, quiet = T)
+library(Bilinear)
+data(soy)
+print(&quot;Genotype by Environment means to be analyzed&quot;)
+print(round(soyMeanMat))
+AMMIfit &lt;- bilinear(x = soyMeanMat, verbose = F)
+AMMIplot(AMMIfit)
+AMMIplot(AMMIfit, PC = 2)
+[1] &quot;Genotype by Environment means to be analyzed&quot;
+      A77  A86  C87  C88  G85  G88  I85  N87  R81  V79
+CHIP 2333 2815 2326 3097 2813 3510 1588 2530 2350 1278
+CORS 3106 3644 1716 2822 3193 4209 1798 2703 2968 1661
+EVAN 2725 3164 3273 3924 3258 4906 1736 2544 2038 1111
+HODG 2741 3407 2574 3164 3423 4752 1839 2831 2800 1499
+S200 2843 3188 1238 2482 3207 4502 1375 2584 2617 1963
+WELL 2745 3590 1661 2902 2925 3690 1534 2538 2758 1712
+WILK 2470 2606 3141 3612 2960 4608 1606 2284 1386  578
+Analysis of Variance Table
+ Response: y 
+    Df           SS          MS    testStat       Pvalue    
+E    9 44090024.844 4898891.649   26.634659 8.113220e-17 ***
+G    6  1779417.193  296569.532    1.612411 1.615608e-01    
+PC1 14  8189064.532  584933.181    0.000000      &lt; 1e-04 ***
+PC2 12  1170287.518   97523.960   50.000000 5.000000e-03  **
+PC3 10   254964.219   25496.422 8672.000000 8.672000e-01    
+PC4  8   200449.152   25056.144 4688.000000 4.688000e-01    
+PC5  6   107532.841   17922.140  970.000000 9.700000e-02    
+PC6  4     9878.688    2469.672          NA                 
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05
+Number of significant multiplicative terms  : 2 </code></pre>
+<p><img src="figure/GeneticCorrelationAndGxE.Rmd/AMMI%20on%20soy%20means-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/GeneticCorrelationAndGxE.Rmd/AMMI%20on%20soy%20means-2.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="simulate-gxe-data-in-alphasimr-and-run-ammi-on-that" class="section level3">
+<h3>Simulate GxE data in AlphaSimR and run AMMI on that</h3>
+<p>The function for an additive trait affected by GxE is <code>addTraitAG</code>. The kind of environment and therefore the GxE deviations is set by specifying a value, <code>p</code>, from the unit uniform, with the target environment represented by 0.5 and <code>0 &lt; p</code> and <code>1 &gt; p</code> at opposite ends of a spectrum. Each time you call <code>setPheno</code> you have to specify this value for the environment from which you are getting phenotypes.</p>
+<pre class="r"><code>SP &lt;- SimParam$new(founderHaps)
+SP$addTraitAG(nQtlPerChr = nQTL, mean = 0, var = 1, varGxE = 1, varEnv = 1)
+
+nEnv &lt;- 10
+# Create a new population of founders
+founders &lt;- newPop(founderHaps, simParam = SP)
+allPheno &lt;- NULL
+
+# Use different values of p for the environment characteristic
+for (envVal in seq(0.05, 0.95, length.out = nEnv)) {
+    allPheno &lt;- cbind(allPheno, setPheno(founders, varE = 0.25, p = envVal, onlyPheno = T))
+}
+rownames(allPheno) &lt;- paste0(&quot;Ind&quot;, 1:nFounders)
+colnames(allPheno) &lt;- paste0(&quot;Env&quot;, 1:nEnv)
+
+AMMIfitSim &lt;- bilinear(x = allPheno, verbose = F)
+AMMIplot(AMMIfitSim)
+
+# Plot the environment scores AlphaSimR uses against what AMMI found
+plot(qnorm(seq(0.05, 0.95, length.out = nEnv)), AMMIfitSim$scores$Escores, pch = 16, 
+    xlab = &quot;AlphaSimR environment scores&quot;, ylab = &quot;Estimated latent score&quot;)
+Analysis of Variance Table
+ Response: y 
+     Df         SS         MS    testStat        Pvalue    
+E     9  859.38196 95.4868839   75.034842 6.176211e-103 ***
+G    99 1021.64666 10.3196632    8.109326  5.012530e-73 ***
+PC1 107  944.28402  8.8250843    0.000000       &lt; 1e-04 ***
+PC2 105   33.61008  0.3200960 8223.000000  8.223000e-01    
+PC3 103   30.86323  0.2996430 7813.000000  7.813000e-01    
+PC4 101   28.47918  0.2819721 6488.000000  6.488000e-01    
+PC5  99   24.70570  0.2495526 7911.000000  7.911000e-01    
+PC6  97   21.72352  0.2239538 8369.000000  8.369000e-01    
+PC7  95   20.74286  0.2183459 3663.000000  3.663000e-01    
+PC8  93   15.85039  0.1704343 7655.000000  7.655000e-01    
+PC9  91   13.59845  0.1494335          NA                  
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05
+Number of significant multiplicative terms  : 1 </code></pre>
+<p><img src="figure/GeneticCorrelationAndGxE.Rmd/AMMI%20on%20sim%20GxE-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/GeneticCorrelationAndGxE.Rmd/AMMI%20on%20sim%20GxE-2.png" width="672" style="display: block; margin: auto;" /></p>
+<blockquote>
+<p>In preparing to simulate <code>DM</code> and <code>FYLD</code> traits in the first part of the lab, I fussed a lot about the error correlation. We saw that GxE is the flip-side of trait correlation. But in simulating the GxE dataset, I didn’t worry about error correlation: why?</p>
+</blockquote>
+<blockquote>
+<p>Notice that for the simulated data, the PC1 test is highly significant with an MS of about 8.5 while the PC2 test is not, with an MS of about 0.3. This strong divergence contrasts with what we say in the real soybean data. Based on what you know about how <code>AlphaSimR</code> generates GxE deviations, why this difference?</p>
+</blockquote>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()
+R version 3.6.1 (2019-07-05)
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+Running under: macOS Mojave 10.14.6
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] Bilinear_0.2.1   devtools_2.2.1   usethis_1.5.1    forcats_0.4.0   
+ [5] stringr_1.4.0    dplyr_0.8.4      purrr_0.3.3      readr_1.3.1     
+ [9] tidyr_1.0.2      tibble_2.1.3     ggplot2_3.2.1    tidyverse_1.3.0 
+[13] AlphaSimR_0.11.1 R6_2.4.1         workflowr_1.6.0 
+
+loaded via a namespace (and not attached):
+ [1] httr_1.4.1        pkgload_1.0.2     jsonlite_1.6.1    modelr_0.1.5     
+ [5] assertthat_0.2.1  cellranger_1.1.0  yaml_2.2.1        remotes_2.1.0    
+ [9] sessioninfo_1.1.1 pillar_1.4.3      backports_1.1.5   lattice_0.20-38  
+[13] glue_1.3.1        digest_0.6.23     promises_1.1.0    rvest_0.3.5      
+[17] colorspace_1.4-1  htmltools_0.4.0   httpuv_1.5.2      pkgconfig_2.0.3  
+[21] broom_0.5.4       haven_2.2.0       scales_1.1.0      processx_3.4.1   
+[25] whisker_0.4       later_1.0.0       git2r_0.26.1      generics_0.0.2   
+[29] ellipsis_0.3.0    withr_2.1.2       lazyeval_0.2.2    cli_2.0.1        
+[33] magrittr_1.5      crayon_1.3.4      readxl_1.3.1      memoise_1.1.0    
+[37] evaluate_0.14     ps_1.3.0          fs_1.3.1          fansi_0.4.1      
+[41] nlme_3.1-144      xml2_1.2.2        pkgbuild_1.0.6    tools_3.6.1      
+[45] prettyunits_1.1.1 hms_0.5.3         formatR_1.7       lifecycle_0.1.0  
+[49] munsell_0.5.0     reprex_0.3.0      callr_3.4.1       compiler_3.6.1   
+[53] rlang_0.4.4       grid_3.6.1        rstudioapi_0.11   rmarkdown_2.1    
+[57] testthat_2.3.1    gtable_0.3.0      curl_4.3          DBI_1.1.0        
+[61] lubridate_1.7.4   knitr_1.28        rprojroot_1.3-2   desc_1.2.0       
+[65] stringi_1.4.5     Rcpp_1.0.3        vctrs_0.2.2       dbplyr_1.4.2     
+[69] tidyselect_1.0.0  xfun_0.12        </code></pre>
+</div>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
